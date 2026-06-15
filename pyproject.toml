@@ -1,0 +1,12 @@
+[project]
+name = "cubagem-stone"
+version = "0.1.0"
+description = "Solução para o problema de cubagem 12º Workshop de Soluções Matemáticas para Problemas Industriais"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "jupyter>=1.1.1",
+    "lightgbm>=4.6.0",
+    "pandas>=3.0.3",
+    "scikit-learn>=1.9.0",
+]
