@@ -41,3 +41,6 @@ tempCodeRunnerFile.py
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Training artifacts
+*.pth
