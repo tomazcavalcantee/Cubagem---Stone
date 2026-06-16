@@ -1,7 +1,7 @@
 # Cubagem Stone
 
-## Running the experiments
-- Install [uv](https://docs.astral.sh/uv/getting-started/installation/) package manager.
+## Running Jupyter Environment 
+- [Install uv package manager](https://docs.astral.sh/uv/getting-started/installation/).
 - In the terminal, run `uv sync`
 - Run `uv run jupyter notebook` to start the Jupyter environment 
 
@@ -10,7 +10,7 @@
 - `cubagem_40k_amazon_train.csv` — train (32000 linhas)
 - `cubagem_40k_amazon_val.csv` — validation (8000 linhas)
 
-## Objectives 
+## Response Variables 
 - `length_cm`, `width_cm`, `height_cm` — dimensoes (length >= width >= height)
 - `weight_g` — peso
 - `volume_cm3` — derivado, mas tambem pode ser alvo direto
