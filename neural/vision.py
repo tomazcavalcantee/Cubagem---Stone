@@ -1,4 +1,4 @@
-import time
+import timm
 import torch
 import logging
 
