@@ -14,7 +14,9 @@ dependencies = [
 
 [dependency-groups]
 gpu = [
+    "timm>=1.0.27",
     "torch>=2.12.0",
+    "torchvision>=0.27.0",
 ]
 
 [tool.setuptools]
