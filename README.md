@@ -1,9 +1,13 @@
 # Cubagem Stone
 
 ## Running Jupyter Environment 
-- [Install uv package manager](https://docs.astral.sh/uv/getting-started/installation/).
-- In the terminal, run `uv sync`
-- Run `uv run jupyter notebook` to start the Jupyter environment 
+First, [install the uv package manager](https://docs.astral.sh/uv/getting-started/installation/).
+Then, run the following commands
+```bash
+uv sync # To add PyTorch support, run uv sync --group gpu
+uv pip install -e . # Install local module 
+uv run jupyter notebook # Start Jupyter env
+```
 
 ## `data/` 
 - `cubagem_40k_amazon.csv` — dataset completo (40000 linhas)
