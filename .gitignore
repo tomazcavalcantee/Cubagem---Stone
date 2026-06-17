@@ -1,3 +1,6 @@
+# Embeddings, which are too heavy
+embeddings/*.npz
+
 __pycache__/
 .Python
 build/
