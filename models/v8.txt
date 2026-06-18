@@ -1,0 +1,4 @@
+- medidas em log dos cms
+- RMSE Loss
+- main_category: Health & Personal Care
+- Train: 425 amostras | Val: 103 amostras

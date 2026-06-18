@@ -1,0 +1,3 @@
+- medidas em log dos cms
+- RMSE Loss
+- categories: Beauty & Personal Care > Skin Care > Body > Moisturizers > Lotions, Pet Supplies > Dogs > Beds & Furniture > Beds

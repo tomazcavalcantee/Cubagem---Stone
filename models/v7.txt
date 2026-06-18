@@ -1,0 +1,4 @@
+- medidas em log dos cms
+- RMSE Loss
+- categories: Pet Supplies > Dogs > Beds & Furniture > Beds
+- Train: 79 amostras | Val: 10 amostras

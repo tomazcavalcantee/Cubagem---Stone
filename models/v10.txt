@@ -1,0 +1,5 @@
+- medidas em log dos cms
+- RMSE Loss
+- categories: Beauty & Personal Care > Skin Care > Body > Moisturizers > Lotions
+- Train: 46 amostras | Val: 15 amostras
+- nn.linear -> 2048
