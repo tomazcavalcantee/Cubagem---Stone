@@ -6,13 +6,13 @@ from tqdm import tqdm
 
 
 def train(model, train_loader, val_loader, device, num_epochs, patience, lr, model_path):
-    criterion = nn.SmoothL1Loss().to(device)
+    criterion = nn.MSELoss().to(device)
     optimizer = optim.Adam(model.fc.parameters(), lr=lr)
 
     history = {
         'train_loss': [], 'train_loss_std': [],
         'val_loss':   [], 'val_loss_std':   [],
-        'val_mae':    [], 'val_mae_std':    [],
+        'val_mape':   [], 'val_mape_std':   [],
     }
     best_val_loss = float('inf')
     epochs_without_improvement = 0
@@ -25,10 +25,11 @@ def train(model, train_loader, val_loader, device, num_epochs, patience, lr, mod
         train_bar = tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} [Train]')
         for inputs, targets in train_bar:
             inputs, targets = inputs.to(device), targets.to(device)
+            log_targets = torch.log1p(targets)
 
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = criterion(outputs, targets)
+            loss = criterion(outputs, log_targets)
             loss.backward()
             optimizer.step()
 
@@ -41,7 +42,7 @@ def train(model, train_loader, val_loader, device, num_epochs, patience, lr, mod
         # --- VALIDAÇÃO ---
         model.eval()
         batch_val_losses = []
-        batch_val_maes   = []
+        batch_val_mapes  = []
         sample_preds     = None
         sample_targets   = None
 
@@ -49,35 +50,37 @@ def train(model, train_loader, val_loader, device, num_epochs, patience, lr, mod
         with torch.no_grad():
             for i, (inputs, targets) in enumerate(val_bar):
                 inputs, targets = inputs.to(device), targets.to(device)
+                log_targets = torch.log1p(targets)
 
                 outputs = model(inputs)
-                loss = criterion(outputs, targets)
-                mae  = torch.mean(torch.abs(outputs - targets)).item()
+                loss = criterion(outputs, log_targets)
+                preds_cm = torch.expm1(outputs)
+                mape = torch.mean(torch.abs(preds_cm - targets) / targets.clamp(min=1e-3)).item() * 100
 
                 batch_val_losses.append(loss.item())
-                batch_val_maes.append(mae)
-                val_bar.set_postfix({'loss': loss.item(), 'mae': f'{mae:.2f}cm'})
+                batch_val_mapes.append(mape)
+                val_bar.set_postfix({'loss': loss.item(), 'mape': f'{mape:.1f}%'})
 
                 if i == 0:
-                    sample_preds   = outputs.cpu().numpy()
+                    sample_preds   = preds_cm.cpu().numpy()
                     sample_targets = targets.cpu().numpy()
 
-        epoch_val_loss    = np.mean(batch_val_losses)
-        epoch_val_std     = np.std(batch_val_losses)
-        epoch_val_mae     = np.mean(batch_val_maes)
-        epoch_val_mae_std = np.std(batch_val_maes)
+        epoch_val_loss     = np.mean(batch_val_losses)
+        epoch_val_std      = np.std(batch_val_losses)
+        epoch_val_mape     = np.mean(batch_val_mapes)
+        epoch_val_mape_std = np.std(batch_val_mapes)
 
         history['train_loss'].append(epoch_train_loss)
         history['train_loss_std'].append(epoch_train_std)
         history['val_loss'].append(epoch_val_loss)
         history['val_loss_std'].append(epoch_val_std)
-        history['val_mae'].append(epoch_val_mae)
-        history['val_mae_std'].append(epoch_val_mae_std)
+        history['val_mape'].append(epoch_val_mape)
+        history['val_mape_std'].append(epoch_val_mape_std)
 
         print(f'\nEpoch {epoch+1} | '
               f'Train Loss: {epoch_train_loss:.4f} ± {epoch_train_std:.4f} | '
               f'Val Loss: {epoch_val_loss:.4f} ± {epoch_val_std:.4f} | '
-              f'Val MAE: {epoch_val_mae:.2f} ± {epoch_val_mae_std:.2f} cm')
+              f'Val MAPE: {epoch_val_mape:.1f} ± {epoch_val_mape_std:.1f} %')
 
         print("-" * 65)
         print(f"{'Previsto (Max, Med, Min) em cm':<32} | {'Real (Max, Med, Min) em cm'}")

@@ -1,0 +1,2 @@
+- medidas em log dos cms
+- smoothL1Loss

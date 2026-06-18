@@ -8,5 +8,5 @@ NUM_EPOCHS = 1000
 PATIENCE   = 5
 LR         = 1e-5
 SEED       = 42
-MODEL_PATH   = "best_model.pth"
+MODELS_DIR   = "models"
 RESULTS_DIR  = "results"
