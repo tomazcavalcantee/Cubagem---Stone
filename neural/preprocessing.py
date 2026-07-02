@@ -9,10 +9,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransformer, LabelEncoder, StandardScaler
-from sklearn.impute import SimpleImputer
+from sklearn.impute import IterativeImputer 
 
 SEED = 42
 np.random.seed(SEED)
@@ -67,7 +68,7 @@ log_targets = [
 ]
 
 class LogTransform:
-    def __init__(self, c: float, base: float = np.e, name: str):
+    def __init__(self, name: str, c: float, base: float = np.e):
         self.c = c
         self.log_base = np.log(base)
         self.name = name
@@ -81,39 +82,30 @@ class LogTransform:
     def inverse_transform(self, x):
         return np.exp(x * self.log_base) - self.c
 
+def build_feature_processor(num_cols, regex_cols, cat_cols):
+    num_pipeline = Pipeline([
+        ("imputer", IterativeImputer(max_iter=10)),
+        ("scaler", StandardScaler())
+    ])
 
-class OneHotTransform:
-    encoder: OneHotEncoder
-    def __init__(self, cols: list[str], drop_first: bool = False):
-        self.encoder = OneHotEncoder(
-            sparse_output=False,
-            drop="first" if drop_first else None,
-            handle_unknown="ignore",
-        )
-        self.cols = cols
-
-    def fit_transform(self, df: pd.DataFrame):
-        encoded = self.encoder.fit_transform(df[self.cols])
-        encoded_df = pd.DataFrame(
-            encoded,
-            columns = self.encoder.get_feature_names_out(self.cols),
-            index = df.index,
-        )
+    regex_pipeline = Pipeline([
+        ("convert", FunctionTransformer(lambda x: x.fillna(False).astype(float)))
+    ])
      
-        return df
-            .drop(columns=self.cols)
-            .join(encoded_df)
+    cat_pipeline = Pipeline([
+        ("ohe", OneHotEncoder(handle_unknown="ignore", sparse_output=False))
+    ])
 
-    def transform(self, df: pd.DataFrame):
-        encoded = self.encoder.transform(df[self.cols])
-        encoded_df = pd.DataFrame(
-            encoded,
-            columns = self.encoder.get_feature_names_out(self.cols),
-            index = df.index,
-        )
-        return df
-            .drop(columns=self.cols)
-            .join(encoded_df)
-
+    # 4. Stitch them together in parallel
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num",     num_pipeline,   num_cols),
+            ("regex",   regex_pipeline, regex_cols),
+            ("cat",     cat_pipeline,   cat_cols)
+        ],
+        remainder="drop"  # Safely ignores unlisted columns like 'asin' or 'target'
+    )
+    
+    return preprocessor
 
 
