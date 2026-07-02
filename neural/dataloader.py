@@ -4,31 +4,27 @@ import torch
 import numpy as np
 import pandas as pd
 
-def load_embeddings(path):
-    data = np.load(path, allow_pickle=True)
+from torch.utils.data import Dataset, DataLoader
 
-    return dict(zip(data["asins"], data["embeddings"]))
+from neural.config import *
 
 class CubagemDataset(Dataset):
-    def __init__(self, text_npz_path, img_npz_path, features_dict, targets_dict):
-        self.df = df.reset_index(drop=True)
-        self.asins = self.df["asin"].values
-        
-        # Load embeddings
-        text_data = np.load(text_npz_path, allow_pickle=True)
-        img_data  = np.load(img_npz_path, allow_pickle=True)
-        
-        self.text_dict = dict(zip(text_data["asins"], text_data["embeddings"]))
-        self.img_dict  = dict(zip(img_data["asins"], img_data["embeddings"]))
-        
-        self.features   = torch.tensor(self.df[features_columns].values, dtype=torch.float32)
-        self.targets     = torch.tensor(self.df[targets_columns].values, dtype=torch.float32)
+    def __init__(self, image_embeddings: dict, text_embeddings: dict, tabular_features: dict, targets: dict, subset_keys):
+        self.index_dict = {
+            i: asin for i, asin 
+            in zip(range(len(subset_keys)), subset_keys)
+        }
+
+        self.text_embeddings = text_embeddings
+        self.image_embeddings = image_embeddings
+        self.features = tabular_features
+        self.targets = targets
 
     def __len__(self):
-        return len(self.targets)
+        return len(self.index_dict)
 
     def __getitem__(self, idx):
-        asin = self.asins[idx]
+        asin = self.index_dict[idx]
         
         # Fetch embeddings dynamically
         emb_t = self.text_dict.get(asin, np.zeros(768, dtype=np.float32))
@@ -40,3 +36,18 @@ class CubagemDataset(Dataset):
             "features":    self.features[idx],
             "targets":     self.targets[idx],
         }
+
+def create_loader(image_embeddings, text_embeddings, tabular_features, log_targets, subset_keys):
+    dataset = CubagemDataset(
+        image_embeddings, text_embeddings,
+        tabular_features, log_targets,
+        subset_keys 
+    )
+    
+    dataloader = DataLoader(
+        dataset, batch_size=BATCH_SIZE,
+        shuffle=True,  num_workers=2, pin_memory=True
+    )
+
+    return dataloader 
+

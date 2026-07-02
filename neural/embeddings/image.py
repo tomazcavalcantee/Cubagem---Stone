@@ -68,7 +68,7 @@ def extract_embeddings(url_dict, processor, model, embeddings_path="embeddings/i
         embeddings=np_embeddings,
         asins=np.asarray(asins)
     )
-    return np_embeddings, asins
+    return dict(zip(asins, np_embeddings))
 
 if __name__ == "__main__":
     df = pd.read_csv("data/raw/cubagem_40k_amazon.csv").set_index("asin", drop=True)

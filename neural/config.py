@@ -7,7 +7,9 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 
-features = {
+BATCH_SIZE = 32
+
+FEATURES = {
     "categorical": [
         "main_category",
         "source_category",
@@ -40,14 +42,14 @@ features = {
     ],
 }
 
-targets = [
+TARGETS = [
     "length_cm",   # length >= width >= height
     "width_cm",
     "height_cm",
     "weight_g",
 ]
 
-log_targets = [
+LOG_TARGETS = [
     "log_length_cm",   # length >= width >= height
     "log_width_cm",
     "log_height_cm",
